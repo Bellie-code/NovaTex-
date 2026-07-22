@@ -1,0 +1,33 @@
+# Python virtual environments
+venv/
+backend/venv/
+ai-service/venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables
+.env
+*.env
+
+# Node
+node_modules/
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# AI model files (optional)
+*.onnx
+*.pth
