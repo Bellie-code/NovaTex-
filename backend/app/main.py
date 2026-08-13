@@ -23,6 +23,8 @@ from app.routers.users import router as users_router
 from app.routers.attendance import router as attendance_router
 from app.routers.admin_users import router as admin_users_router
 from app.routers.admin_face import router as admin_face_router
+from app.routers.recognition import router as recognition_router
+
 
 app = FastAPI(
     title="Privacy-Aware Face Recognition Attendance System",
@@ -68,6 +70,7 @@ app.include_router(spoof_router)
 app.include_router(analytics_router)
 app.include_router(admin_users_router)
 app.include_router(admin_face_router)
+app.include_router(recognition_router)
 # =====================================================
 # BASIC ROUTES
 # =====================================================

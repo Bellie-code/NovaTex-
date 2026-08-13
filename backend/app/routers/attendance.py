@@ -12,8 +12,8 @@ from app.models.attendance import (
 
 from app.services.ai_client import generate_embedding
 from app.services.spoof_service import spoof_check_single_frame
-from app.services.face_service import decode_base64_image
 from app.services.recognition_cache_service import get_cached_embeddings
+from app.utils.image import decode_base64_image
 
 from app.schemas.attendance import AttendanceMarkRequest
 from app.core.dependencies import require_role

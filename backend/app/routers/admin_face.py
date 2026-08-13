@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import numpy as np
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -8,11 +7,9 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import require_role
 from app.database import get_db
 from app.models.user import User
-from app.services.face_service import (
-    decode_base64_image,
-    extract_embedding,
-)
+from app.services.ai_client import generate_embedding
 from app.services.recognition_cache_service import load_embeddings_to_cache
+
 
 router = APIRouter(
     prefix="/api/admin/face",
@@ -21,7 +18,7 @@ router = APIRouter(
 
 
 # ============================================
-# Request Model
+# REQUEST MODEL
 # ============================================
 
 class FaceEnrollRequest(BaseModel):
@@ -50,45 +47,59 @@ async def enroll_face(
             detail="Employee not found",
         )
 
-    # Decode Base64 image
-    image = decode_base64_image(payload.image_base64)
-
-    if image is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid image",
-        )
-
-    # Generate embedding
-    embedding = extract_embedding(image)
+    # Generate embedding through the centralized AI service.
+    # The AI service uses InsightFace buffalo_s.
+    embedding = generate_embedding(payload.image_base64)
 
     if embedding is None:
         raise HTTPException(
             status_code=400,
-            detail="Face not detected",
+            detail="Face could not be detected or AI service failed",
         )
 
-    # Save embedding
-    user.embedding = np.asarray(
-        embedding,
-        dtype=np.float32,
-    ).tobytes()
+    try:
+        import numpy as np
 
-    user.face_enrolled = True
-    user.face_updated_at = datetime.utcnow()
+        embedding_array = np.asarray(
+            embedding,
+            dtype=np.float32,
+        )
 
-    db.commit()
-    db.refresh(user)
+        if embedding_array.size != 512:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid face embedding dimension",
+            )
 
-    # Refresh Redis cache
-    load_embeddings_to_cache(db)
+        user.embedding = embedding_array.tobytes()
+        user.face_enrolled = True
+        user.face_updated_at = datetime.utcnow()
 
-    return {
-        "message": "Face enrolled successfully",
-        "employee_id": employee_id,
-        "face_enrolled": True,
-        "face_updated_at": user.face_updated_at,
-    }
+        db.commit()
+        db.refresh(user)
+
+        # Refresh Redis recognition cache.
+        load_embeddings_to_cache(db)
+
+        return {
+            "message": "Face enrolled successfully",
+            "employee_id": employee_id,
+            "face_enrolled": True,
+            "face_updated_at": user.face_updated_at,
+            "embedding_dim": int(embedding_array.size),
+            "model": "insightface_buffalo_s",
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Face enrollment failed: {str(e)}",
+        )
 
 
 # ============================================
@@ -119,9 +130,10 @@ def delete_face(
     db.commit()
     db.refresh(user)
 
-    # Refresh Redis cache
+    # Refresh Redis cache.
     load_embeddings_to_cache(db)
 
     return {
-        "message": "Face deleted successfully"
+        "message": "Face deleted successfully",
+        "employee_id": employee_id,
     }
