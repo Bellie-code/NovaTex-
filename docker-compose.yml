@@ -34,6 +34,8 @@ services:
       - "8000:8000"
     env_file:
       - ./backend/.env
+    environment:
+      AI_SERVICE_URL: http://ai-service:9000
     depends_on:
       - db
       - redis

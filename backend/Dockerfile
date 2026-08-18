@@ -16,17 +16,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-
 COPY requirements-base.txt .
+COPY requirements-ai.txt .
+
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements-base.txt
-
-COPY requirements-ai.txt .
-RUN pip install --no-cache-dir --only-binary=:all: onnxruntime==1.17.1 numpy==1.26.4 opencv-python-headless==4.9.0.80
+RUN pip install --no-cache-dir -r requirements-ai.txt
 
 RUN pip uninstall -y jax jaxlib || true
 
 COPY . .
 
 EXPOSE 8000
+
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
