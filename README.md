@@ -100,3 +100,26 @@ The current system demonstrates an end-to-end AI-powered attendance workflow usi
 ## License
 
 This project is currently intended for educational, research, and prototype development purposes.
+
+## Screenshots
+
+### Login
+![Login](assets/screenshots/login.png)
+
+### Admin Dashboard
+![Admin Dashboard](assets/screenshots/admin-dashboard.png)
+
+### Employee Management
+![Employee Management](assets/screenshots/employee-management.png)
+
+### Face Enrollment
+![Face Enrollment](assets/screenshots/face-enrollment.png)
+
+### Face Recognition
+![Face Recognition](assets/screenshots/face-recognition.png)
+
+### Mark Attendance
+![Mark Attendance](assets/screenshots/mark-attendance.png)
+
+### Attendance Logs
+![Attendance Logs](assets/screenshots/attendance-logs.png)
